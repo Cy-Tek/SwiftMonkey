@@ -9,3 +9,9 @@ public class Program: Node {
     return statements.first?.tokenLiteral() ?? ""
   }
 }
+
+extension Program: CustomStringConvertible {
+  public var description: String {
+    return statements.map { $0.description }.joined(separator: "\n")
+  }
+}

@@ -12,6 +12,7 @@ public enum ParsingError: Error {
 public enum Statement: Node {
   case letStatement(LetStatement)
   case returnStatement(ReturnStatement)
+  case expressionStatement(ExpressionStatement)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -19,6 +20,21 @@ public enum Statement: Node {
       return statement.tokenLiteral()
     case .returnStatement(let statement):
       return statement.tokenLiteral()
+    case .expressionStatement(let statement):
+      return statement.tokenLiteral()
+    }
+  }
+}
+
+extension Statement: CustomStringConvertible {
+  public var description: String {
+    switch self {
+    case .letStatement(let statement):
+      return statement.description
+    case .returnStatement(let statement):
+      return statement.description
+    case .expressionStatement(let statement):
+      return statement.description
     }
   }
 }
@@ -30,6 +46,15 @@ public enum Expression: Node {
     switch self {
     case .identifier(let expression):
       return expression.tokenLiteral()
+    }
+  }
+}
+
+extension Expression: CustomStringConvertible {
+  public var description: String {
+    switch self {
+    case .identifier(let expr):
+      return expr.description
     }
   }
 }

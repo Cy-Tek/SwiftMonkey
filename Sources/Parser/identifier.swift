@@ -8,3 +8,9 @@ public struct Identifier: Node {
     return token.literal
   }
 }
+
+extension Identifier: CustomStringConvertible {
+  public var description: String {
+    return value
+  }
+}
