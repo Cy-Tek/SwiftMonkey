@@ -11,10 +11,13 @@ public enum ParsingError: Error {
 
 public enum Statement: Node {
   case letStatement(LetStatement)
+  case returnStatement(ReturnStatement)
 
   func tokenLiteral() -> String {
     switch self {
     case .letStatement(let statement):
+      return statement.tokenLiteral()
+    case .returnStatement(let statement):
       return statement.tokenLiteral()
     }
   }
@@ -63,6 +66,7 @@ public class Parser {
   func parseStatement() -> Statement? {
     return switch curToken.type {
     case .let: parseLetStatment()
+    case .return: parseReturnStatement()
     default: nil
     }
   }
@@ -85,6 +89,17 @@ public class Parser {
     }
 
     return .letStatement(LetStatement(token: token, name: name, value: nil))
+  }
+
+  func parseReturnStatement() -> Statement? {
+    let returnStmt = ReturnStatement(token: curToken, value: nil)
+
+    nextToken()
+    while !curTokenIs(.semicolon) {
+      nextToken()
+    }
+
+    return .returnStatement(returnStmt)
   }
 
   func nextToken() {
