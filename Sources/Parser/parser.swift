@@ -76,6 +76,10 @@ public class Parser {
 
     let name = Identifier(token: curToken, value: curToken.literal)
 
+    guard expectPeek(expected: .assign) else {
+      return nil
+    }
+
     while !curTokenIs(.semicolon) {
       nextToken()
     }
@@ -98,7 +102,9 @@ public class Parser {
 
   func expectPeek(expected: TokenType) -> Bool {
     guard peekTokenIs(expected) else {
-      errors.append("Expected next to be \(expected), but received \(peekToken.type)")
+      errors.append(
+        "Expected next token to be \(expected), but received \(peekToken.type)"
+      )
       return false
     }
 
