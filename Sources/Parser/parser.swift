@@ -98,15 +98,11 @@ public class Parser {
 
   func expectPeek(expected: TokenType) -> Bool {
     guard peekTokenIs(expected) else {
-      peekError(expected: expected)
+      errors.append("Expected next to be \(expected), but received \(peekToken.type)")
       return false
     }
 
     nextToken()
     return true
-  }
-
-  func peekError(expected: TokenType) {
-    errors.append("Expected next to be \(expected), but received \(peekToken.type)")
   }
 }
