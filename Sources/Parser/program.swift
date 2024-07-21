@@ -5,7 +5,7 @@ public class Program: Node {
     statements = []
   }
 
-  func tokenLiteral() -> String {
+  public func tokenLiteral() -> String {
     return statements.first?.tokenLiteral() ?? ""
   }
 }

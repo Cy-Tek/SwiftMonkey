@@ -4,7 +4,7 @@ public struct ReturnStatement: Node {
   public let token: Token
   public let value: Expression?
 
-  func tokenLiteral() -> String {
+  public func tokenLiteral() -> String {
     return token.literal
   }
 }

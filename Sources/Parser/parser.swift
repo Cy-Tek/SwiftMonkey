@@ -13,7 +13,7 @@ public enum Statement: Node {
   case letStatement(LetStatement)
   case returnStatement(ReturnStatement)
 
-  func tokenLiteral() -> String {
+  public func tokenLiteral() -> String {
     switch self {
     case .letStatement(let statement):
       return statement.tokenLiteral()
@@ -26,7 +26,7 @@ public enum Statement: Node {
 public enum Expression: Node {
   case identifier(Identifier)
 
-  func tokenLiteral() -> String {
+  public func tokenLiteral() -> String {
     switch self {
     case .identifier(let expression):
       return expression.tokenLiteral()
