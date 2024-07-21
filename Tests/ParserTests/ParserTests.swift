@@ -15,6 +15,19 @@ func testLetStatement(statement: Statement, name: String) -> Bool {
   return true
 }
 
+func testParserErrors(_ parser: Parser) -> Bool {
+  if parser.errors.isEmpty {
+    return true
+  }
+
+  for error in parser.errors {
+    XCTFail("Parser error: \(error)")
+  }
+
+  XCTFail("Parser has \(parser.errors.count) errors")
+  return false
+}
+
 final class ParserTests: XCTestCase {
   func testLetStatements() {
     let input = """
@@ -24,10 +37,8 @@ final class ParserTests: XCTestCase {
       """
 
     let parser = Parser(input: input)
-    guard let program = try? parser.parseProgram() else {
-      XCTFail("Failed to find a valid program.")
-      return
-    }
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
 
     XCTAssertEqual(program.statements.count, 3)
 
@@ -36,7 +47,7 @@ final class ParserTests: XCTestCase {
     ]
 
     for (stmt, expectedIdentifier) in zip(program.statements, tests) {
-      if !testLetStatement(statement: stmt, name: expectedIdentifier) {
+      guard testLetStatement(statement: stmt, name: expectedIdentifier) else {
         return
       }
     }

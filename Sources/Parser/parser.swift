@@ -36,6 +36,8 @@ public class Parser {
   var curToken: Token = Token()
   var peekToken: Token = Token()
 
+  public private(set) var errors: [String] = []
+
   init(input: String) {
     lexer = Lexer(input: input)
 
@@ -44,7 +46,7 @@ public class Parser {
     nextToken()
   }
 
-  public func parseProgram() throws -> Program {
+  public func parseProgram() -> Program {
     let program = Program()
 
     while curToken.type != .eof {
@@ -96,10 +98,15 @@ public class Parser {
 
   func expectPeek(expected: TokenType) -> Bool {
     guard peekTokenIs(expected) else {
+      peekError(expected: expected)
       return false
     }
 
     nextToken()
     return true
+  }
+
+  func peekError(expected: TokenType) {
+    errors.append("Expected next to be \(expected), but received \(peekToken.type)")
   }
 }
