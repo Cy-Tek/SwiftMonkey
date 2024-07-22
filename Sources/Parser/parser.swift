@@ -172,7 +172,7 @@ public class Parser {
       return nil
     }
 
-    var leftExp = prefix()
+    let leftExp = prefix()
 
     /* while !peekTokenIs(.semicolon) && precedence < Precedence.lowest {
       guard let infix = infixParseFns[peekToken.type] else {
