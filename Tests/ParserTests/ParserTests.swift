@@ -85,13 +85,12 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    guard case .integer(let literal) = expressionStmt.expression else {
-      XCTFail("Expression was not an integer literal")
+    guard let expression = expressionStmt.expression else {
+      XCTFail("Found nil expression, but expected an integer literal")
       return
     }
 
-    XCTAssertEqual(literal.value, 5)
-    XCTAssertEqual(literal.tokenLiteral(), "5")
+    testIntegerLiteral(expression: expression, value: 5)
   }
 }
 
@@ -105,6 +104,7 @@ func testLetStatement(statement: Statement, name: String) -> Bool {
 
   XCTAssertEqual(letStmt.name.value, name)
   XCTAssertEqual(letStmt.name.tokenLiteral(), name)
+
   return true
 }
 
@@ -119,4 +119,14 @@ func testParserErrors(_ parser: Parser) -> Bool {
 
   XCTFail("Parser has \(parser.errors.count) errors")
   return false
+}
+
+func testIntegerLiteral(expression: Expression, value: Int) {
+  guard case .integer(let literal) = expression else {
+    XCTFail("Expression was not an integer literal")
+    return
+  }
+
+  XCTAssertEqual(literal.value, value)
+  XCTAssertEqual(literal.tokenLiteral(), String(value))
 }
