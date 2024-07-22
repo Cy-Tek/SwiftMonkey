@@ -96,8 +96,8 @@ public class Lexer {
       readChar()
     }
 
-    let end = indices[position]
-    let literal = String(input[start..<end])
+    let end = indices[position - 1]
+    let literal = String(input[start...end])
     let type = Keywords.lookup(for: literal)
 
     return Token(type, literal)
@@ -109,8 +109,8 @@ public class Lexer {
       readChar()
     }
 
-    let end = indices[position]
-    let literal = String(input[start..<end])
+    let end = indices[position - 1]
+    let literal = String(input[start...end])
 
     return Token(.int, literal)
   }
