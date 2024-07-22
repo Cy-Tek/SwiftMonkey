@@ -92,6 +92,41 @@ final class ParserTests: XCTestCase {
 
     let _ = testIntegerLiteral(expression: expression, value: 5)
   }
+
+  func testParsingPrefixExpressions() {
+    let prefixTests: [(input: String, expectedOp: String, expectedValue: Int)] = [
+      ("!5;", "!", 5),
+      ("-15;", "-", 15),
+    ]
+
+    for test in prefixTests {
+      let parser = Parser(input: test.input)
+      let program = parser.parseProgram()
+      guard testParserErrors(parser) else { return }
+
+      XCTAssertEqual(program.statements.count, 1)
+
+      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+        XCTFail("Statement was not an expression statement")
+        return
+      }
+
+      guard let expression = expressionStmt.expression else {
+        XCTFail("Found nil expression, but expected a prefix expression")
+        return
+      }
+
+      guard case .prefix(let prefixExpr) = expression else {
+        XCTFail("Expression was not a prefix expression")
+        return
+      }
+
+      XCTAssertEqual(prefixExpr.op, test.expectedOp)
+      guard testIntegerLiteral(expression: prefixExpr.right!, value: test.expectedValue) else {
+        return
+      }
+    }
+  }
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {
