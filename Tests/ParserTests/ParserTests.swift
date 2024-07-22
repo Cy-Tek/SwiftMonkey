@@ -90,22 +90,8 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    testIntegerLiteral(expression: expression, value: 5)
+    let _ = testIntegerLiteral(expression: expression, value: 5)
   }
-}
-
-func testLetStatement(statement: Statement, name: String) -> Bool {
-  XCTAssertEqual(statement.tokenLiteral(), "let")
-
-  guard case .letStatement(let letStmt) = statement else {
-    XCTFail("Statement was not a LetStatement.")
-    return false
-  }
-
-  XCTAssertEqual(letStmt.name.value, name)
-  XCTAssertEqual(letStmt.name.tokenLiteral(), name)
-
-  return true
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {
@@ -121,12 +107,43 @@ func testParserErrors(_ parser: Parser) -> Bool {
   return false
 }
 
-func testIntegerLiteral(expression: Expression, value: Int) {
-  guard case .integer(let literal) = expression else {
-    XCTFail("Expression was not an integer literal")
-    return
+func testLetStatement(statement: Statement, name: String) -> Bool {
+  XCTAssertEqual(statement.tokenLiteral(), "let")
+
+  guard case .letStatement(let letStmt) = statement else {
+    XCTFail("Statement was not a LetStatement.")
+    return false
   }
 
-  XCTAssertEqual(literal.value, value)
-  XCTAssertEqual(literal.tokenLiteral(), String(value))
+  guard letStmt.name.value == name else {
+    XCTFail("Let statement name was \(letStmt.name.value), but expected \(name)")
+    return false
+  }
+
+  guard letStmt.name.tokenLiteral() == name else {
+    XCTFail(
+      "Let statement name token literal was \(letStmt.name.tokenLiteral()), but expected \(name)")
+    return false
+  }
+
+  return true
+}
+
+func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
+  guard case .integer(let literal) = expression else {
+    XCTFail("Expression was not an integer literal")
+    return false
+  }
+
+  guard literal.value == value else {
+    XCTFail("Integer literal value was \(literal.value), but expected \(value)")
+    return false
+  }
+
+  guard literal.tokenLiteral() == String(value) else {
+    XCTFail("Integer literal token literal was \(literal.tokenLiteral()), but expected \(value)")
+    return false
+  }
+
+  return true
 }
