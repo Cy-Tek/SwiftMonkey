@@ -228,4 +228,8 @@ public class Parser {
   private func registerPrefix(tokenType: TokenType, fn: @escaping PrefixParseFn) {
     prefixParseFns[tokenType] = fn
   }
+
+  private func registerInfix(tokenType: TokenType, fn: @escaping InfixParseFn) {
+    infixParseFns[tokenType] = fn
+  }
 }
