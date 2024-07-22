@@ -49,6 +49,28 @@ final class ParserTests: XCTestCase {
       XCTAssertEqual(returnStmt.tokenLiteral(), "return")
     }
   }
+
+  func testIdentifierExpression() {
+    let input = "foobar;"
+    let parser = Parser(input: input)
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
+
+    XCTAssertEqual(program.statements.count, 1)
+
+    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      XCTFail("Statement was not an expression statement.")
+      return
+    }
+
+    guard case .identifier(let identifier) = expressionStmt.expression else {
+      XCTFail("Expression was not an identifier.")
+      return
+    }
+
+    XCTAssertEqual(identifier.value, "foobar")
+    XCTAssertEqual(identifier.tokenLiteral(), "foobar")
+  }
 }
 
 func testLetStatement(statement: Statement, name: String) -> Bool {

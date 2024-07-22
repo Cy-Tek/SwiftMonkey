@@ -9,6 +9,20 @@ public enum ParsingError: Error {
   case unexpectedToken(expected: String, found: String)
 }
 
+public enum Precedence: Int, Comparable {
+  case lowest = 1
+  case equals
+  case lessGreater
+  case sum
+  case product
+  case prefix
+  case call
+
+  public static func < (lhs: Precedence, rhs: Precedence) -> Bool {
+    return lhs.rawValue < rhs.rawValue
+  }
+}
+
 public enum Statement: Node {
   case letStatement(LetStatement)
   case returnStatement(ReturnStatement)
@@ -59,15 +73,23 @@ extension Expression: CustomStringConvertible {
   }
 }
 
+typealias PrefixParseFn = () -> Expression?
+typealias InfixParseFn = (Expression) -> Expression?
+
 public class Parser {
   var lexer: Lexer
   var curToken: Token = Token()
   var peekToken: Token = Token()
 
+  var prefixParseFns: [TokenType: PrefixParseFn] = [:]
+  var infixParseFns: [TokenType: InfixParseFn] = [:]
+
   public private(set) var errors: [String] = []
 
   init(input: String) {
     lexer = Lexer(input: input)
+
+    registerPrefix(tokenType: .ident, fn: parseIdentifier)
 
     // Read the first two tokens into memory
     nextToken()
@@ -92,7 +114,7 @@ public class Parser {
     return switch curToken.type {
     case .let: parseLetStatment()
     case .return: parseReturnStatement()
-    default: nil
+    default: parseExpressionStatement()
     }
   }
 
@@ -127,6 +149,42 @@ public class Parser {
     return .returnStatement(returnStmt)
   }
 
+  func parseExpressionStatement() -> Statement? {
+    let token = curToken
+    let expression = parseExpression(precedence: .lowest)
+
+    if peekTokenIs(.semicolon) {
+      nextToken()
+    }
+
+    return .expressionStatement(ExpressionStatement(token: token, expression: expression))
+  }
+
+  func parseExpression(precedence: Precedence) -> Expression? {
+    guard let prefix = prefixParseFns[curToken.type] else {
+      errors.append("No prefix parse function for \(curToken.type)")
+      return nil
+    }
+
+    var leftExp = prefix()
+
+    /* while !peekTokenIs(.semicolon) && precedence < Precedence.lowest {
+      guard let infix = infixParseFns[peekToken.type] else {
+        return leftExp
+      }
+
+      nextToken()
+
+      leftExp = infix(leftExp)
+    } */
+
+    return leftExp
+  }
+
+  func parseIdentifier() -> Expression? {
+    return .identifier(Identifier(token: curToken, value: curToken.literal))
+  }
+
   func nextToken() {
     curToken = peekToken
     peekToken = lexer.nextToken()
@@ -150,5 +208,9 @@ public class Parser {
 
     nextToken()
     return true
+  }
+
+  private func registerPrefix(tokenType: TokenType, fn: @escaping PrefixParseFn) {
+    prefixParseFns[tokenType] = fn
   }
 }
