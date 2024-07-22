@@ -55,11 +55,14 @@ extension Statement: CustomStringConvertible {
 
 public enum Expression: Node {
   case identifier(Identifier)
+  case integer(IntegerLiteral)
 
   public func tokenLiteral() -> String {
     switch self {
-    case .identifier(let expression):
-      return expression.tokenLiteral()
+    case .identifier(let expr):
+      return expr.tokenLiteral()
+    case .integer(let expr):
+      return expr.tokenLiteral()
     }
   }
 }
@@ -68,6 +71,8 @@ extension Expression: CustomStringConvertible {
   public var description: String {
     switch self {
     case .identifier(let expr):
+      return expr.description
+    case .integer(let expr):
       return expr.description
     }
   }
@@ -90,6 +95,7 @@ public class Parser {
     lexer = Lexer(input: input)
 
     registerPrefix(tokenType: .ident, fn: parseIdentifier)
+    registerPrefix(tokenType: .int, fn: parseIntegerLiteral)
 
     // Read the first two tokens into memory
     nextToken()
@@ -183,6 +189,15 @@ public class Parser {
 
   func parseIdentifier() -> Expression? {
     return .identifier(Identifier(token: curToken, value: curToken.literal))
+  }
+
+  func parseIntegerLiteral() -> Expression? {
+    guard let value = Int(curToken.literal) else {
+      errors.append("Could not parse \(curToken.literal) as an integer")
+      return nil
+    }
+
+    return .integer(IntegerLiteral(token: curToken, value: value))
   }
 
   func nextToken() {

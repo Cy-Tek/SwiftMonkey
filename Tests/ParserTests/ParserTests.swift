@@ -71,6 +71,28 @@ final class ParserTests: XCTestCase {
     XCTAssertEqual(identifier.value, "foobar")
     XCTAssertEqual(identifier.tokenLiteral(), "foobar")
   }
+
+  func testIntegerLiteralExpression() {
+    let input = "5;"
+    let parser = Parser(input: input)
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
+
+    XCTAssertEqual(program.statements.count, 1)
+
+    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      XCTFail("Statement was not an expression statement")
+      return
+    }
+
+    guard case .integer(let literal) = expressionStmt.expression else {
+      XCTFail("Expression was not an integer literal")
+      return
+    }
+
+    XCTAssertEqual(literal.value, 5)
+    XCTAssertEqual(literal.tokenLiteral(), "5")
+  }
 }
 
 func testLetStatement(statement: Statement, name: String) -> Bool {
