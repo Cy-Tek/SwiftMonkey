@@ -12,6 +12,6 @@ public class Program: Node {
 
 extension Program: CustomStringConvertible {
   public var description: String {
-    return statements.map { $0.description }.joined(separator: "\n")
+    return statements.map { $0.description }.joined()
   }
 }
