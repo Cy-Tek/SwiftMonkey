@@ -127,6 +127,118 @@ final class ParserTests: XCTestCase {
       }
     }
   }
+
+  func testParsingInfixExpressions() {
+    let infixTests: [(input: String, leftValue: Int, op: String, rightValue: Int)] = [
+      ("5 + 5;", 5, "+", 5),
+      ("5 - 5;", 5, "-", 5),
+      ("5 * 5;", 5, "*", 5),
+      ("5 / 5;", 5, "/", 5),
+      ("5 > 5;", 5, ">", 5),
+      ("5 < 5;", 5, "<", 5),
+      ("5 == 5;", 5, "==", 5),
+      ("5 != 5;", 5, "!=", 5),
+    ]
+
+    for test in infixTests {
+      let parser = Parser(input: test.input)
+      let program = parser.parseProgram()
+      guard testParserErrors(parser) else { return }
+
+      XCTAssertEqual(program.statements.count, 1)
+
+      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+        XCTFail("Statement was not an expression statement")
+        return
+      }
+
+      guard let expression = expressionStmt.expression else {
+        XCTFail("Found nil expression, but expected an infix expression")
+        return
+      }
+
+      guard case .infix(let infixExpr) = expression else {
+        XCTFail("Expression was not an infix expression")
+        return
+      }
+
+      if let left = infixExpr.left {
+        guard testIntegerLiteral(expression: left, value: test.leftValue) else {
+          return
+        }
+      }
+
+      XCTAssertEqual(infixExpr.op, test.op)
+
+      if let right = infixExpr.right {
+        guard testIntegerLiteral(expression: right, value: test.rightValue) else {
+          return
+        }
+      }
+    }
+  }
+
+  func testOperatorPrecedenceParsing() {
+    let tests: [(input: String, expected: String)] = [
+      (
+        "-a * b",
+        "((-a) * b)"
+      ),
+      (
+        "!-a",
+        "(!(-a))"
+      ),
+      (
+        "a + b + c",
+        "((a + b) + c)"
+      ),
+      (
+        "a + b - c",
+        "((a + b) - c)"
+      ),
+      (
+        "a * b * c",
+        "((a * b) * c)"
+      ),
+      (
+        "a * b / c",
+        "((a * b) / c)"
+      ),
+      (
+        "a + b / c",
+        "(a + (b / c))"
+      ),
+      (
+        "a + b * c + d / e - f",
+        "(((a + (b * c)) + (d / e)) - f)"
+      ),
+      (
+        "3 + 4; -5 * 5",
+        "(3 + 4)((-5) * 5)"
+      ),
+      (
+        "5 > 4 == 3 < 4",
+        "((5 > 4) == (3 < 4))"
+      ),
+      (
+        "5 < 4 != 3 > 4",
+        "((5 < 4) != (3 > 4))"
+      ),
+      (
+        "3 + 4 * 5 == 3 * 1 + 4 * 5",
+        "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
+      ),
+    ]
+
+    for test in tests {
+      let parser = Parser(input: test.input)
+      let program = parser.parseProgram()
+      guard testParserErrors(parser) else { return }
+
+      let actual = program.description
+      XCTAssertEqual(test.expected, actual)
+    }
+  }
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {

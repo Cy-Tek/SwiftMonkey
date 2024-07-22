@@ -57,6 +57,7 @@ public enum Expression: Node {
   case identifier(Identifier)
   case integer(IntegerLiteral)
   indirect case prefix(PrefixExpression)
+  indirect case infix(InfixExpression)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -65,6 +66,8 @@ public enum Expression: Node {
     case .integer(let expr):
       return expr.tokenLiteral()
     case .prefix(let expr):
+      return expr.tokenLiteral()
+    case .infix(let expr):
       return expr.tokenLiteral()
     }
   }
@@ -79,12 +82,31 @@ extension Expression: CustomStringConvertible {
       return expr.description
     case .prefix(let expr):
       return expr.description
+    case .infix(let expr):
+      return expr.description
     }
   }
 }
 
 typealias PrefixParseFn = () -> Expression?
 typealias InfixParseFn = (Expression) -> Expression?
+
+private enum Precedences {
+  static let precedences: [TokenType: Precedence] = [
+    .equal: .equals,
+    .not_equal: .equals,
+    .lt: .lessGreater,
+    .gt: .lessGreater,
+    .plus: .sum,
+    .minus: .sum,
+    .slash: .product,
+    .asterisk: .product,
+  ]
+
+  public static func lookup(for tokenType: TokenType) -> Precedence {
+    return precedences[tokenType] ?? .lowest
+  }
+}
 
 public class Parser {
   var lexer: Lexer
@@ -103,6 +125,15 @@ public class Parser {
     registerPrefix(tokenType: .int, fn: parseIntegerLiteral)
     registerPrefix(tokenType: .bang, fn: parsePrefixExpression)
     registerPrefix(tokenType: .minus, fn: parsePrefixExpression)
+
+    registerInfix(tokenType: .plus, fn: parseInfixExpression)
+    registerInfix(tokenType: .minus, fn: parseInfixExpression)
+    registerInfix(tokenType: .asterisk, fn: parseInfixExpression)
+    registerInfix(tokenType: .slash, fn: parseInfixExpression)
+    registerInfix(tokenType: .gt, fn: parseInfixExpression)
+    registerInfix(tokenType: .lt, fn: parseInfixExpression)
+    registerInfix(tokenType: .equal, fn: parseInfixExpression)
+    registerInfix(tokenType: .not_equal, fn: parseInfixExpression)
 
     // Read the first two tokens into memory
     nextToken()
@@ -179,17 +210,18 @@ public class Parser {
       return nil
     }
 
-    let leftExp = prefix()
+    guard var leftExp = prefix() else {
+      return nil
+    }
 
-    /* while !peekTokenIs(.semicolon) && precedence < Precedence.lowest {
+    while !peekTokenIs(.semicolon) && precedence < peekPrecedence() {
       guard let infix = infixParseFns[peekToken.type] else {
         return leftExp
       }
 
       nextToken()
-
-      leftExp = infix(leftExp)
-    } */
+      leftExp = infix(leftExp)!
+    }
 
     return leftExp
   }
@@ -218,6 +250,17 @@ public class Parser {
     return .prefix(PrefixExpression(token: token, op: op, right: right))
   }
 
+  func parseInfixExpression(left: Expression?) -> Expression? {
+    let token = curToken
+    let op = curToken.literal
+
+    let precedence = curPrecedence()
+    nextToken()
+    let right = parseExpression(precedence: precedence)
+
+    return .infix(InfixExpression(token: token, left: left, op: op, right: right))
+  }
+
   func nextToken() {
     curToken = peekToken
     peekToken = lexer.nextToken()
@@ -241,6 +284,14 @@ public class Parser {
 
     nextToken()
     return true
+  }
+
+  func peekPrecedence() -> Precedence {
+    return Precedences.lookup(for: peekToken.type)
+  }
+
+  func curPrecedence() -> Precedence {
+    return Precedences.lookup(for: curToken.type)
   }
 
   private func registerPrefix(tokenType: TokenType, fn: @escaping PrefixParseFn) {
