@@ -157,24 +157,14 @@ final class ParserTests: XCTestCase {
         return
       }
 
-      guard case .infix(let infixExpr) = expression else {
-        XCTFail("Expression was not an infix expression")
-        return
-      }
-
-      if let left = infixExpr.left {
-        guard testIntegerLiteral(expression: left, value: test.leftValue) else {
-          return
-        }
-      }
-
-      XCTAssertEqual(infixExpr.op, test.op)
-
-      if let right = infixExpr.right {
-        guard testIntegerLiteral(expression: right, value: test.rightValue) else {
-          return
-        }
-      }
+      XCTAssert(
+        testInfixExpression(
+          expression: expression,
+          left: test.leftValue,
+          op: test.op,
+          right: test.rightValue
+        )
+      )
     }
   }
 
@@ -276,6 +266,25 @@ func testLetStatement(statement: Statement, name: String) -> Bool {
   return true
 }
 
+func testIdentifier(expression: Expression, value: String) -> Bool {
+  guard case .identifier(let identifier) = expression else {
+    XCTFail("Expression was not an identifier")
+    return false
+  }
+
+  guard identifier.value == value else {
+    XCTFail("Identifier value was \(identifier.value), but expected \(value)")
+    return false
+  }
+
+  guard identifier.tokenLiteral() == value else {
+    XCTFail("Identifier token literal was \(identifier.tokenLiteral()), but expected \(value)")
+    return false
+  }
+
+  return true
+}
+
 func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
   guard case .integer(let literal) = expression else {
     XCTFail("Expression was not an integer literal")
@@ -289,6 +298,58 @@ func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
 
   guard literal.tokenLiteral() == String(value) else {
     XCTFail("Integer literal token literal was \(literal.tokenLiteral()), but expected \(value)")
+    return false
+  }
+
+  return true
+}
+
+func testLiteralExpression(expression: Expression, expected: Any) -> Bool {
+  switch expected {
+  case let value as Int:
+    return testIntegerLiteral(expression: expression, value: value)
+  case let value as String:
+    return testIdentifier(expression: expression, value: value)
+  default:
+    XCTFail("Type of expression not handled. Expected Int or String, but got \(type(of: expected))")
+    return false
+  }
+}
+
+func testInfixExpression(
+  expression: Expression,
+  left: Any,
+  op: String,
+  right: Any
+) -> Bool {
+  guard case .infix(let infixExpr) = expression else {
+    XCTFail("Expression was not an infix expression")
+    return false
+  }
+
+  // Left expression testing
+
+  guard let leftExpression = infixExpr.left else {
+    XCTFail("Left expression is nil")
+    return false
+  }
+
+  guard testLiteralExpression(expression: leftExpression, expected: left) else {
+    return false
+  }
+
+  // Operator testing
+
+  XCTAssertEqual(infixExpr.op, op)
+
+  // Right expression testing
+
+  guard let rightExpression = infixExpr.right else {
+    XCTFail("Right expression is nil")
+    return false
+  }
+
+  guard testLiteralExpression(expression: rightExpression, expected: right) else {
     return false
   }
 
