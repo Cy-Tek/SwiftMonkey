@@ -94,9 +94,11 @@ final class ParserTests: XCTestCase {
   }
 
   func testParsingPrefixExpressions() {
-    let prefixTests: [(input: String, expectedOp: String, expectedValue: Int)] = [
+    let prefixTests: [(input: String, expectedOp: String, expectedValue: Any)] = [
       ("!5;", "!", 5),
       ("-15;", "-", 15),
+      ("!true;", "!", true),
+      ("!false;", "!", false),
     ]
 
     for test in prefixTests {
@@ -122,14 +124,15 @@ final class ParserTests: XCTestCase {
       }
 
       XCTAssertEqual(prefixExpr.op, test.expectedOp)
-      guard testIntegerLiteral(expression: prefixExpr.right!, value: test.expectedValue) else {
+      guard testLiteralExpression(expression: prefixExpr.right!, expected: test.expectedValue)
+      else {
         return
       }
     }
   }
 
   func testParsingInfixExpressions() {
-    let infixTests: [(input: String, leftValue: Int, op: String, rightValue: Int)] = [
+    let infixTests: [(input: String, leftValue: Any, op: String, rightValue: Any)] = [
       ("5 + 5;", 5, "+", 5),
       ("5 - 5;", 5, "-", 5),
       ("5 * 5;", 5, "*", 5),
@@ -138,6 +141,9 @@ final class ParserTests: XCTestCase {
       ("5 < 5;", 5, "<", 5),
       ("5 == 5;", 5, "==", 5),
       ("5 != 5;", 5, "!=", 5),
+      ("true == true;", true, "==", true),
+      ("true != false;", true, "!=", false),
+      ("false == false;", false, "==", false),
     ]
 
     for test in infixTests {
@@ -157,14 +163,14 @@ final class ParserTests: XCTestCase {
         return
       }
 
-      XCTAssert(
+      guard
         testInfixExpression(
           expression: expression,
           left: test.leftValue,
           op: test.op,
           right: test.rightValue
         )
-      )
+      else { return }
     }
   }
 
@@ -304,10 +310,31 @@ func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
   return true
 }
 
+func testBooleanLiteral(expression: Expression, expected: Bool) -> Bool {
+  guard case .bool(let boolExpr) = expression else {
+    XCTFail("Expected a BooleanLiteral expression")
+    return false
+  }
+
+  guard boolExpr.value == expected else {
+    XCTFail("Expected \(expected), but found \(boolExpr.value)")
+    return false
+  }
+
+  guard boolExpr.tokenLiteral() == String(expected) else {
+    XCTFail("Expected token literal to be \(expected), but found \(boolExpr.tokenLiteral())")
+    return false
+  }
+
+  return true
+}
+
 func testLiteralExpression(expression: Expression, expected: Any) -> Bool {
   switch expected {
   case let value as Int:
     return testIntegerLiteral(expression: expression, value: value)
+  case let value as Bool:
+    return testBooleanLiteral(expression: expression, expected: value)
   case let value as String:
     return testIdentifier(expression: expression, value: value)
   default:

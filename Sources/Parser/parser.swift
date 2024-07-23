@@ -56,6 +56,7 @@ extension Statement: CustomStringConvertible {
 public enum Expression: Node {
   case identifier(Identifier)
   case integer(IntegerLiteral)
+  case bool(BooleanLiteral)
   indirect case prefix(PrefixExpression)
   indirect case infix(InfixExpression)
 
@@ -64,6 +65,8 @@ public enum Expression: Node {
     case .identifier(let expr):
       return expr.tokenLiteral()
     case .integer(let expr):
+      return expr.tokenLiteral()
+    case .bool(let expr):
       return expr.tokenLiteral()
     case .prefix(let expr):
       return expr.tokenLiteral()
@@ -79,6 +82,8 @@ extension Expression: CustomStringConvertible {
     case .identifier(let expr):
       return expr.description
     case .integer(let expr):
+      return expr.description
+    case .bool(let expr):
       return expr.description
     case .prefix(let expr):
       return expr.description
@@ -125,6 +130,8 @@ public class Parser {
     registerPrefix(tokenType: .int, fn: parseIntegerLiteral)
     registerPrefix(tokenType: .bang, fn: parsePrefixExpression)
     registerPrefix(tokenType: .minus, fn: parsePrefixExpression)
+    registerPrefix(tokenType: .true, fn: parseBooleanLiteral)
+    registerPrefix(tokenType: .false, fn: parseBooleanLiteral)
 
     registerInfix(tokenType: .plus, fn: parseInfixExpression)
     registerInfix(tokenType: .minus, fn: parseInfixExpression)
@@ -237,6 +244,15 @@ public class Parser {
     }
 
     return .integer(IntegerLiteral(token: curToken, value: value))
+  }
+
+  func parseBooleanLiteral() -> Expression? {
+    guard let value = Bool(curToken.literal) else {
+      errors.append("Could not parse \(curToken.literal) as a boolean")
+      return nil
+    }
+
+    return .bool(BooleanLiteral(token: curToken, value: value))
   }
 
   func parsePrefixExpression() -> Expression? {
