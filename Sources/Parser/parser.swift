@@ -132,6 +132,7 @@ public class Parser {
     registerPrefix(tokenType: .minus, fn: parsePrefixExpression)
     registerPrefix(tokenType: .true, fn: parseBooleanLiteral)
     registerPrefix(tokenType: .false, fn: parseBooleanLiteral)
+    registerPrefix(tokenType: .l_paren, fn: parseGroupedExpression)
 
     registerInfix(tokenType: .plus, fn: parseInfixExpression)
     registerInfix(tokenType: .minus, fn: parseInfixExpression)
@@ -231,6 +232,17 @@ public class Parser {
     }
 
     return leftExp
+  }
+
+  func parseGroupedExpression() -> Expression? {
+    nextToken()
+
+    let exp = parseExpression(precedence: .lowest)
+    guard expectPeek(expected: .r_paren) else {
+      return nil
+    }
+
+    return exp
   }
 
   func parseIdentifier() -> Expression? {
