@@ -27,6 +27,7 @@ public enum Statement: Node {
   case letStatement(LetStatement)
   case returnStatement(ReturnStatement)
   case expressionStatement(ExpressionStatement)
+  case blockStatement(BlockStatement)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -35,6 +36,8 @@ public enum Statement: Node {
     case .returnStatement(let statement):
       return statement.tokenLiteral()
     case .expressionStatement(let statement):
+      return statement.tokenLiteral()
+    case .blockStatement(let statement):
       return statement.tokenLiteral()
     }
   }
@@ -48,6 +51,8 @@ extension Statement: CustomStringConvertible {
     case .returnStatement(let statement):
       return statement.description
     case .expressionStatement(let statement):
+      return statement.description
+    case .blockStatement(let statement):
       return statement.description
     }
   }
