@@ -299,6 +299,56 @@ final class ParserTests: XCTestCase {
 
     XCTAssertNil(ifExpr.alternative)
   }
+
+  func testFunctionLiteral() {
+    let input = "fn(x, y) { x + y; }"
+    let parser = Parser(input: input)
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
+
+    XCTAssertEqual(program.statements.count, 1)
+
+    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      XCTFail("Statement was not an expression statement")
+      return
+    }
+
+    guard case .fn(let fnExpr) = expressionStmt.expression else {
+      XCTFail("Expression was not an fn expression")
+      return
+    }
+
+    guard fnExpr.params.count == 2 else {
+      XCTFail("Expected 2 parameters, but found \(fnExpr.params.count)")
+      return
+    }
+
+    let _ = testLiteralExpression(expression: .identifier(fnExpr.params[0]), expected: "x")
+    let _ = testLiteralExpression(expression: .identifier(fnExpr.params[1]), expected: "y")
+
+    guard let fnBody = fnExpr.body else {
+      XCTFail("Expected to find a function body")
+      return
+    }
+
+    guard fnBody.statements.count == 1 else {
+      XCTFail(
+        "Expected 1 statement in the function body, but received \(fnBody.statements.count)")
+      return
+    }
+
+    guard case .expressionStatement(let bodyStmt) = fnBody.statements[0] else {
+      XCTFail("Expected to get an expression statement")
+      return
+    }
+
+    guard let bodyExpr = bodyStmt.expression else {
+      XCTFail("Failed to receive a valid expression inside of the body statment")
+      return
+    }
+
+    let _ = testInfixExpression(expression: bodyExpr, left: "x", op: "+", right: "y")
+  }
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {

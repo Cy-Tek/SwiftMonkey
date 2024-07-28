@@ -65,6 +65,7 @@ public enum Expression: Node {
   indirect case prefix(PrefixExpression)
   indirect case infix(InfixExpression)
   indirect case `if`(IfExpression)
+  case fn(FunctionLiteral)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -79,6 +80,8 @@ public enum Expression: Node {
     case .infix(let expr):
       return expr.tokenLiteral()
     case .if(let expr):
+      return expr.tokenLiteral()
+    case .fn(let expr):
       return expr.tokenLiteral()
     }
   }
@@ -98,6 +101,8 @@ extension Expression: CustomStringConvertible {
     case .infix(let expr):
       return expr.description
     case .if(let expr):
+      return expr.description
+    case .fn(let expr):
       return expr.description
     }
   }
@@ -144,6 +149,7 @@ public class Parser {
     registerPrefix(tokenType: .false, fn: parseBooleanLiteral)
     registerPrefix(tokenType: .l_paren, fn: parseGroupedExpression)
     registerPrefix(tokenType: .if, fn: parseIfExpression)
+    registerPrefix(tokenType: .function, fn: parseFnExpression)
 
     registerInfix(tokenType: .plus, fn: parseInfixExpression)
     registerInfix(tokenType: .minus, fn: parseInfixExpression)
@@ -350,6 +356,39 @@ public class Parser {
     return .if(
       IfExpression(
         token: token, condition: condition, consequence: consequence, alternative: alternative))
+  }
+
+  func parseFnExpression() -> Expression? {
+    let token = curToken
+    var params: [Identifier] = []
+
+    guard expectPeek(expected: .l_paren) else { return nil }
+    nextToken()
+
+    while curToken.type != .r_paren {
+      guard case .identifier(let ident) = parseIdentifier() else {
+        errors.append(
+          "Attempted to read an identifier while parsing fn parameters, but received a different token type."
+        )
+        return nil
+      }
+
+      params.append(ident)
+      nextToken()
+
+      switch curToken.type {
+      case .comma: nextToken()
+      case .r_paren: continue
+      default:
+        errors.append("Expected either a `comma` or `r_paren`, but received \(peekToken.type)")
+        return nil
+      }
+    }
+
+    guard expectPeek(expected: .l_brace) else { return nil }
+    let body = parseBlockStatement()
+
+    return .fn(FunctionLiteral(token: token, params: params, body: body))
   }
 
   func nextToken() {
