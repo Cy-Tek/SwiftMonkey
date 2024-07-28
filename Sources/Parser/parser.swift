@@ -64,6 +64,7 @@ public enum Expression: Node {
   case bool(BooleanLiteral)
   indirect case prefix(PrefixExpression)
   indirect case infix(InfixExpression)
+  indirect case `if`(IfExpression)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -76,6 +77,8 @@ public enum Expression: Node {
     case .prefix(let expr):
       return expr.tokenLiteral()
     case .infix(let expr):
+      return expr.tokenLiteral()
+    case .if(let expr):
       return expr.tokenLiteral()
     }
   }
@@ -93,6 +96,8 @@ extension Expression: CustomStringConvertible {
     case .prefix(let expr):
       return expr.description
     case .infix(let expr):
+      return expr.description
+    case .if(let expr):
       return expr.description
     }
   }
@@ -138,6 +143,7 @@ public class Parser {
     registerPrefix(tokenType: .true, fn: parseBooleanLiteral)
     registerPrefix(tokenType: .false, fn: parseBooleanLiteral)
     registerPrefix(tokenType: .l_paren, fn: parseGroupedExpression)
+    registerPrefix(tokenType: .if, fn: parseIfExpression)
 
     registerInfix(tokenType: .plus, fn: parseInfixExpression)
     registerInfix(tokenType: .minus, fn: parseInfixExpression)
@@ -217,6 +223,22 @@ public class Parser {
     return .expressionStatement(ExpressionStatement(token: token, expression: expression))
   }
 
+  func parseBlockStatement() -> BlockStatement? {
+    var blockStatement = BlockStatement(token: curToken, statements: [])
+
+    nextToken()
+
+    while !curTokenIs(.r_brace) && !curTokenIs(.eof) {
+      if let stmt = parseStatement() {
+        blockStatement.append(stmt)
+      }
+
+      nextToken()
+    }
+
+    return blockStatement
+  }
+
   func parseExpression(precedence: Precedence) -> Expression? {
     guard let prefix = prefixParseFns[curToken.type] else {
       errors.append("No prefix parse function for \(curToken.type)")
@@ -292,6 +314,42 @@ public class Parser {
     let right = parseExpression(precedence: precedence)
 
     return .infix(InfixExpression(token: token, left: left, op: op, right: right))
+  }
+
+  func parseIfExpression() -> Expression? {
+    let token = curToken
+
+    guard expectPeek(expected: .l_paren) else { return nil }
+    nextToken()
+
+    guard let condition = parseExpression(precedence: .lowest) else { return nil }
+
+    guard expectPeek(expected: .r_paren) else {
+      return nil
+    }
+
+    guard expectPeek(expected: .l_brace) else {
+      return nil
+    }
+
+    guard let consequence = parseBlockStatement() else {
+      return nil
+    }
+
+    var alternative: BlockStatement?
+    if peekTokenIs(.else) {
+      nextToken()
+
+      guard expectPeek(expected: .l_brace) else {
+        return nil
+      }
+
+      alternative = parseBlockStatement()
+    }
+
+    return .if(
+      IfExpression(
+        token: token, condition: condition, consequence: consequence, alternative: alternative))
   }
 
   func nextToken() {

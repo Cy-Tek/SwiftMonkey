@@ -2,11 +2,15 @@ import Lexer
 
 public struct BlockStatement: Node {
   public let token: Token
-  public let statements: [Statement]
+  private(set) public var statements: [Statement]
 
   public init(token: Token, statements: [Statement]) {
     self.token = token
     self.statements = statements
+  }
+
+  public mutating func append(_ item: Statement) {
+    statements.append(item)
   }
 
   public func tokenLiteral() -> String {

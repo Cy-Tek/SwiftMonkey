@@ -255,6 +255,50 @@ final class ParserTests: XCTestCase {
       XCTAssertEqual(test.expected, actual)
     }
   }
+
+  func testIfExpression() {
+    let input = "if (x < y) { x }"
+    let parser = Parser(input: input)
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
+
+    XCTAssertEqual(program.statements.count, 1)
+
+    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      XCTFail("Statement was not an expression statement")
+      return
+    }
+
+    guard case .if(let ifExpr) = expressionStmt.expression else {
+      XCTFail("Expression was not an if expression")
+      return
+    }
+
+    XCTAssertEqual(ifExpr.tokenLiteral(), "if")
+
+    guard testInfixExpression(expression: ifExpr.condition, left: "x", op: "<", right: "y") else {
+      return
+    }
+
+    XCTAssertEqual(ifExpr.consequence.statements.count, 1)
+
+    guard case .expressionStatement(let consequenceStmt) = ifExpr.consequence.statements.first
+    else {
+      XCTFail("Consequence statement was not an expression statement")
+      return
+    }
+
+    guard let consequnce = consequenceStmt.expression else {
+      XCTFail("Consequence expression was nil")
+      return
+    }
+
+    guard testIdentifier(expression: consequnce, value: "x") else {
+      return
+    }
+
+    XCTAssertNil(ifExpr.alternative)
+  }
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {
