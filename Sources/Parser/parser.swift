@@ -7,6 +7,7 @@ protocol Node {
 public enum ParsingError: Error {
   case unimplemented
   case unexpectedToken(expected: String, found: String)
+  case unexpectedExpressionType(expected: String, found: String)
 }
 
 public enum Precedence: Int, Comparable {
@@ -66,6 +67,7 @@ public enum Expression: Node {
   indirect case infix(InfixExpression)
   indirect case `if`(IfExpression)
   case fn(FunctionLiteral)
+  indirect case call(CallExpression)
 
   public func tokenLiteral() -> String {
     switch self {
@@ -82,6 +84,8 @@ public enum Expression: Node {
     case .if(let expr):
       return expr.tokenLiteral()
     case .fn(let expr):
+      return expr.tokenLiteral()
+    case .call(let expr):
       return expr.tokenLiteral()
     }
   }
@@ -104,6 +108,8 @@ extension Expression: CustomStringConvertible {
       return expr.description
     case .fn(let expr):
       return expr.description
+    case .call(let expr):
+      return expr.description
     }
   }
 }
@@ -121,6 +127,7 @@ private enum Precedences {
     .minus: .sum,
     .slash: .product,
     .asterisk: .product,
+    .l_paren: .call,
   ]
 
   public static func lookup(for tokenType: TokenType) -> Precedence {
@@ -159,6 +166,7 @@ public class Parser {
     registerInfix(tokenType: .lt, fn: parseInfixExpression)
     registerInfix(tokenType: .equal, fn: parseInfixExpression)
     registerInfix(tokenType: .not_equal, fn: parseInfixExpression)
+    registerInfix(tokenType: .l_paren, fn: parseCallExpression)
 
     // Read the first two tokens into memory
     nextToken()
@@ -391,6 +399,41 @@ public class Parser {
     let body = parseBlockStatement()
 
     return .fn(FunctionLiteral(token: token, params: params, body: body))
+  }
+
+  func parseCallExpression(left: Expression?) -> Expression? {
+    guard let fn = left else { return nil }
+
+    do {
+      var callExpr = try CallExpression(token: curToken, fn: fn)
+
+      if peekTokenIs(.r_paren) {
+        nextToken()
+        return .call(callExpr)
+      }
+
+      while !curTokenIs(.r_paren) {
+        nextToken()
+
+        if let expr = parseExpression(precedence: .lowest) {
+          callExpr.addArg(expr)
+        }
+
+        nextToken()
+        guard curTokenIs(.comma) || curTokenIs(.r_paren) else {
+          errors.append("Expected to find a `comma` or `r_paren`, but received \(peekToken.type)")
+          return nil
+        }
+      }
+
+      return .call(callExpr)
+    } catch ParsingError.unexpectedExpressionType(expected: let expected, found: let found) {
+      errors.append("Expected expression type \(expected), but instead found: \(found)")
+      return nil
+    } catch {
+      errors.append("Unexpected error when creating a call expression")
+      return nil
+    }
   }
 
   func nextToken() {

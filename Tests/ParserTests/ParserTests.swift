@@ -244,6 +244,18 @@ final class ParserTests: XCTestCase {
         "!(true == true)",
         "(!(true == true))"
       ),
+      (
+        "a + add(b * c) + d",
+        "((a + add((b * c))) + d)"
+      ),
+      (
+        "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"
+      ),
+      (
+        "add(a + b + c * d / f + g)",
+        "add((((a + b) + ((c * d) / f)) + g))"
+      ),
     ]
 
     for test in tests {
@@ -387,6 +399,32 @@ final class ParserTests: XCTestCase {
         }
       }
     }
+  }
+
+  func testCallExpressions() {
+    let input = "add(1, 2 * 3, 4 + 5);"
+    let parser = Parser(input: input)
+    let program = parser.parseProgram()
+    guard testParserErrors(parser) else { return }
+
+    XCTAssertEqual(program.statements.count, 1)
+
+    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      XCTFail(
+        "Expected an expression statement but found \(program.statements.first?.description ?? "nil")"
+      )
+      return
+    }
+
+    guard case .call(let callExpr) = expressionStmt.expression else {
+      XCTFail(
+        "Expected a call expression but found \(expressionStmt.expression?.description ?? "nil")")
+      return
+    }
+
+    let _ = testLiteralExpression(expression: callExpr.arguments[0], expected: 1)
+    let _ = testInfixExpression(expression: callExpr.arguments[1], left: 2, op: "*", right: 3)
+    let _ = testInfixExpression(expression: callExpr.arguments[2], left: 4, op: "+", right: 5)
   }
 }
 
