@@ -349,6 +349,45 @@ final class ParserTests: XCTestCase {
 
     let _ = testInfixExpression(expression: bodyExpr, left: "x", op: "+", right: "y")
   }
+
+  func testFunctionParameterParsing() {
+    let tests: [(input: String, expectedParams: [String])] = [
+      ("fn() {};", []),
+      ("fn(x) {};", ["x"]),
+      ("fn(x, y, z) {};", ["x", "y", "z"]),
+    ]
+
+    for test in tests {
+      let parser = Parser(input: test.input)
+      let program = parser.parseProgram()
+      guard testParserErrors(parser) else { return }
+
+      XCTAssertEqual(program.statements.count, 1)
+
+      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+        XCTFail("Expression was not an expression statement")
+        return
+      }
+
+      guard case .fn(let function) = expressionStmt.expression else {
+        XCTFail("Expected expression statement to be a function literal")
+        return
+      }
+
+      guard function.params.count == test.expectedParams.count else {
+        XCTFail(
+          "Expected \(test.expectedParams.count) params, but received \(function.params.count)")
+        return
+      }
+
+      for (i, param) in test.expectedParams.enumerated() {
+        guard testLiteralExpression(expression: .identifier(function.params[i]), expected: param)
+        else {
+          return
+        }
+      }
+    }
+  }
 }
 
 func testParserErrors(_ parser: Parser) -> Bool {
