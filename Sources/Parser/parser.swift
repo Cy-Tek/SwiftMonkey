@@ -376,10 +376,12 @@ public class Parser {
       params.append(ident)
       nextToken()
 
-      switch curToken.type {
-      case .comma: nextToken()
-      case .r_paren: continue
-      default:
+      if curTokenIs(.comma) {
+        nextToken()
+        continue
+      }
+
+      guard curTokenIs(.r_paren) else {
         errors.append("Expected either a `comma` or `r_paren`, but received \(peekToken.type)")
         return nil
       }
