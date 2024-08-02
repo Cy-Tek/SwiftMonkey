@@ -208,21 +208,33 @@ public class Parser {
       return nil
     }
 
-    while !curTokenIs(.semicolon) {
+    nextToken()
+    guard let value = parseExpression(precedence: .lowest) else {
+      errors.append("Failed to find a valid expression after `=` symbol in let statement.")
+      return nil
+    }
+
+    if peekTokenIs(.semicolon) {
       nextToken()
     }
 
-    return .letStatement(LetStatement(token: token, name: name, value: nil))
+    return .letStatement(LetStatement(token: token, name: name, value: value))
   }
 
   func parseReturnStatement() -> Statement? {
-    let returnStmt = ReturnStatement(token: curToken, value: nil)
+    let token = curToken
 
     nextToken()
-    while !curTokenIs(.semicolon) {
+    guard let value = parseExpression(precedence: .lowest) else {
+      errors.append("Failed to find a valid expression after `return` keyword.")
+      return nil
+    }
+
+    if peekTokenIs(.semicolon) {
       nextToken()
     }
 
+    let returnStmt = ReturnStatement(token: token, value: value)
     return .returnStatement(returnStmt)
   }
 

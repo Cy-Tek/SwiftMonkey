@@ -4,24 +4,27 @@ import XCTest
 
 final class ParserTests: XCTestCase {
   func testLetStatements() {
-    let input = """
-      let x = 5;
-      let y = 10;
-      let foobar = 838383;
-      """
-
-    let parser = Parser(input: input)
-    let program = parser.parseProgram()
-    guard testParserErrors(parser) else { return }
-
-    XCTAssertEqual(program.statements.count, 3)
-
-    let tests: [String] = [
-      "x", "y", "foobar",
+    let tests: [(input: String, expectedIdentifier: String, expectedValue: Any)] = [
+      ("let x = 5;", "x", 5),
+      ("let y = true;", "y", true),
+      ("let foobar = y;", "foobar", "y"),
     ]
 
-    for (stmt, expectedIdentifier) in zip(program.statements, tests) {
-      guard testLetStatement(statement: stmt, name: expectedIdentifier) else {
+    for test in tests {
+      let parser = Parser(input: test.input)
+      let program = parser.parseProgram()
+      guard testParserErrors(parser) else { return }
+
+      XCTAssertEqual(program.statements.count, 1)
+
+      guard let stmt = program.statements.first else {
+        XCTFail("Expected a valid statment to be found")
+        return
+      }
+
+      guard
+        testLetStatement(statement: stmt, name: test.expectedIdentifier, value: test.expectedValue)
+      else {
         return
       }
     }
@@ -29,10 +32,16 @@ final class ParserTests: XCTestCase {
 
   func testReturnStatements() {
     let input = """
-      return 5;
-      return 10;
-      return 993322;
+      return 50;
+      return true;
+      return y;
       """
+
+    let tests: [Any] = [
+      50,
+      true,
+      "y",
+    ]
 
     let parser = Parser(input: input)
     let program = parser.parseProgram()
@@ -40,13 +49,17 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 3)
 
-    for stmt in program.statements {
+    for (i, stmt) in program.statements.enumerated() {
       guard case .returnStatement(let returnStmt) = stmt else {
         XCTFail("Statement was not a return statement. Received literal \(stmt.tokenLiteral())")
         return
       }
 
       XCTAssertEqual(returnStmt.tokenLiteral(), "return")
+
+      guard testLiteralExpression(expression: returnStmt.value, expected: tests[i]) else {
+        return
+      }
     }
   }
 
@@ -441,7 +454,7 @@ func testParserErrors(_ parser: Parser) -> Bool {
   return false
 }
 
-func testLetStatement(statement: Statement, name: String) -> Bool {
+func testLetStatement(statement: Statement, name: String, value: Any) -> Bool {
   XCTAssertEqual(statement.tokenLiteral(), "let")
 
   guard case .letStatement(let letStmt) = statement else {
@@ -457,6 +470,10 @@ func testLetStatement(statement: Statement, name: String) -> Bool {
   guard letStmt.name.tokenLiteral() == name else {
     XCTFail(
       "Let statement name token literal was \(letStmt.name.tokenLiteral()), but expected \(name)")
+    return false
+  }
+
+  guard testLiteralExpression(expression: letStmt.value, expected: value) else {
     return false
   }
 
