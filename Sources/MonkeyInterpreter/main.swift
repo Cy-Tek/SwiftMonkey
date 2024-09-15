@@ -1,27 +1,37 @@
+import Evaluator
 import Foundation
-import Lexer
+import Parser
 
 let prompt = ">> "
 
-func startREPL() {
+func startREPL() throws {
   print("Welcome to the Monkey programming language!")
   print("Feel free to type in commands")
-  print(prompt, terminator: "")
 
-  while let line = readLine() {
-    guard line != "quit;" else {
+  while true {
+    // Print the prompt before reading input
+    print(prompt, terminator: "")
+
+    guard let line = readLine(), line != "quit;" else {
       break
     }
 
-    let lexer = Lexer(input: line)
-    var token = lexer.nextToken()
-    while token.type != .eof {
-      print(token)
-      token = lexer.nextToken()
+    let parser = Parser(input: line)
+    let program = parser.parseProgram()
+
+    if parser.errors.count > 0 {
+      for err in parser.errors {
+        print("Parser Error: \(err)")
+      }
+      continue
     }
 
-    print(prompt, terminator: "")
+    guard let evaluated = try? eval(node: program) else {
+      continue
+    }
+
+    print("\(evaluated.inspect())")
   }
 }
 
-startREPL()
+try startREPL()

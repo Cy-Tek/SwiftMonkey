@@ -18,7 +18,7 @@ let package = Package(
     .target(name: "Object", dependencies: []),
     .target(name: "Evaluator", dependencies: ["Object", "Parser"]),
 
-    .executableTarget(name: "MonkeyInterpreter", dependencies: ["Lexer"]),
+    .executableTarget(name: "MonkeyInterpreter", dependencies: ["Parser", "Evaluator"]),
 
     .testTarget(name: "LexerTests", dependencies: ["Lexer"]),
     .testTarget(name: "ParserTests", dependencies: ["Parser"]),
