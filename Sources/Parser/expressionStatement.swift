@@ -1,6 +1,6 @@
 import Lexer
 
-public struct ExpressionStatement: Node {
+public struct ExpressionStatement: Statement {
   // The first token of the expression
   public let token: Token
 

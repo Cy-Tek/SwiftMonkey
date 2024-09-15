@@ -1,6 +1,6 @@
 import Lexer
 
-public struct InfixExpression: Node {
+public struct InfixExpression: Expression {
   public let token: Token
   public let left: Expression?
   public let op: String

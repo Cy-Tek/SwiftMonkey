@@ -1,6 +1,6 @@
 import Lexer
 
-public struct Identifier: Node {
+public struct Identifier: Expression {
   public let token: Token
   public let value: String
 

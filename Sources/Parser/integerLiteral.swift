@@ -1,6 +1,6 @@
 import Lexer
 
-public class IntegerLiteral: Node {
+public class IntegerLiteral: Expression {
   public var token: Token
   public var value: Int
 

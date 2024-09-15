@@ -1,6 +1,6 @@
 import Lexer
 
-public struct CallExpression: Node {
+public struct CallExpression: Expression {
   public let token: Token
   public let function: Expression
   private(set) public var arguments: [Expression]
@@ -10,8 +10,8 @@ public struct CallExpression: Node {
     self.arguments = []
 
     switch fn {
-    case .identifier: self.function = fn
-    case .fn: self.function = fn
+    case is Identifier: self.function = fn
+    case is FunctionLiteral: self.function = fn
     default:
       throw ParsingError.unexpectedExpressionType(expected: "fn or identifier", found: "\(fn)")
     }

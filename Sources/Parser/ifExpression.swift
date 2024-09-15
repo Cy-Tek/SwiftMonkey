@@ -1,6 +1,6 @@
 import Lexer
 
-public struct IfExpression: Node {
+public struct IfExpression: Expression {
   public let token: Token
   public let condition: Expression
   public let consequence: BlockStatement

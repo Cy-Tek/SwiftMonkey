@@ -24,95 +24,8 @@ public enum Precedence: Int, Comparable {
   }
 }
 
-public enum Statement: Node {
-  case letStatement(LetStatement)
-  case returnStatement(ReturnStatement)
-  case expressionStatement(ExpressionStatement)
-  case blockStatement(BlockStatement)
-
-  public func tokenLiteral() -> String {
-    switch self {
-    case .letStatement(let statement):
-      return statement.tokenLiteral()
-    case .returnStatement(let statement):
-      return statement.tokenLiteral()
-    case .expressionStatement(let statement):
-      return statement.tokenLiteral()
-    case .blockStatement(let statement):
-      return statement.tokenLiteral()
-    }
-  }
-}
-
-extension Statement: CustomStringConvertible {
-  public var description: String {
-    switch self {
-    case .letStatement(let statement):
-      return statement.description
-    case .returnStatement(let statement):
-      return statement.description
-    case .expressionStatement(let statement):
-      return statement.description
-    case .blockStatement(let statement):
-      return statement.description
-    }
-  }
-}
-
-public enum Expression: Node {
-  case identifier(Identifier)
-  case integer(IntegerLiteral)
-  case bool(BooleanLiteral)
-  indirect case prefix(PrefixExpression)
-  indirect case infix(InfixExpression)
-  indirect case `if`(IfExpression)
-  case fn(FunctionLiteral)
-  indirect case call(CallExpression)
-
-  public func tokenLiteral() -> String {
-    switch self {
-    case .identifier(let expr):
-      return expr.tokenLiteral()
-    case .integer(let expr):
-      return expr.tokenLiteral()
-    case .bool(let expr):
-      return expr.tokenLiteral()
-    case .prefix(let expr):
-      return expr.tokenLiteral()
-    case .infix(let expr):
-      return expr.tokenLiteral()
-    case .if(let expr):
-      return expr.tokenLiteral()
-    case .fn(let expr):
-      return expr.tokenLiteral()
-    case .call(let expr):
-      return expr.tokenLiteral()
-    }
-  }
-}
-
-extension Expression: CustomStringConvertible {
-  public var description: String {
-    switch self {
-    case .identifier(let expr):
-      return expr.description
-    case .integer(let expr):
-      return expr.description
-    case .bool(let expr):
-      return expr.description
-    case .prefix(let expr):
-      return expr.description
-    case .infix(let expr):
-      return expr.description
-    case .if(let expr):
-      return expr.description
-    case .fn(let expr):
-      return expr.description
-    case .call(let expr):
-      return expr.description
-    }
-  }
-}
+public protocol Statement: Node, CustomStringConvertible {}
+public protocol Expression: Node, CustomStringConvertible {}
 
 typealias PrefixParseFn = () -> Expression?
 typealias InfixParseFn = (Expression) -> Expression?
@@ -218,7 +131,7 @@ public class Parser {
       nextToken()
     }
 
-    return .letStatement(LetStatement(token: token, name: name, value: value))
+    return LetStatement(token: token, name: name, value: value)
   }
 
   func parseReturnStatement() -> Statement? {
@@ -234,8 +147,7 @@ public class Parser {
       nextToken()
     }
 
-    let returnStmt = ReturnStatement(token: token, value: value)
-    return .returnStatement(returnStmt)
+    return ReturnStatement(token: token, value: value)
   }
 
   func parseExpressionStatement() -> Statement? {
@@ -247,7 +159,7 @@ public class Parser {
     }
 
     guard let expression else { return nil }
-    return .expressionStatement(ExpressionStatement(token: token, expression: expression))
+    return ExpressionStatement(token: token, expression: expression)
   }
 
   func parseBlockStatement() -> BlockStatement? {
@@ -300,7 +212,7 @@ public class Parser {
   }
 
   func parseIdentifier() -> Expression? {
-    return .identifier(Identifier(token: curToken, value: curToken.literal))
+    return Identifier(token: curToken, value: curToken.literal)
   }
 
   func parseIntegerLiteral() -> Expression? {
@@ -309,7 +221,7 @@ public class Parser {
       return nil
     }
 
-    return .integer(IntegerLiteral(token: curToken, value: value))
+    return IntegerLiteral(token: curToken, value: value)
   }
 
   func parseBooleanLiteral() -> Expression? {
@@ -318,7 +230,7 @@ public class Parser {
       return nil
     }
 
-    return .bool(BooleanLiteral(token: curToken, value: value))
+    return BooleanLiteral(token: curToken, value: value)
   }
 
   func parsePrefixExpression() -> Expression? {
@@ -329,7 +241,7 @@ public class Parser {
 
     let right = parseExpression(precedence: .prefix)
 
-    return .prefix(PrefixExpression(token: token, op: op, right: right))
+    return PrefixExpression(token: token, op: op, right: right)
   }
 
   func parseInfixExpression(left: Expression?) -> Expression? {
@@ -340,7 +252,7 @@ public class Parser {
     nextToken()
     let right = parseExpression(precedence: precedence)
 
-    return .infix(InfixExpression(token: token, left: left, op: op, right: right))
+    return InfixExpression(token: token, left: left, op: op, right: right)
   }
 
   func parseIfExpression() -> Expression? {
@@ -374,9 +286,8 @@ public class Parser {
       alternative = parseBlockStatement()
     }
 
-    return .if(
-      IfExpression(
-        token: token, condition: condition, consequence: consequence, alternative: alternative))
+    return IfExpression(
+      token: token, condition: condition, consequence: consequence, alternative: alternative)
   }
 
   func parseFnExpression() -> Expression? {
@@ -387,7 +298,7 @@ public class Parser {
     nextToken()
 
     while curToken.type != .r_paren {
-      guard case .identifier(let ident) = parseIdentifier() else {
+      guard let ident = parseIdentifier() as? Identifier else {
         errors.append(
           "Attempted to read an identifier while parsing fn parameters, but received a different token type."
         )
@@ -411,7 +322,7 @@ public class Parser {
     guard expectPeek(expected: .l_brace) else { return nil }
     let body = parseBlockStatement()
 
-    return .fn(FunctionLiteral(token: token, params: params, body: body))
+    return FunctionLiteral(token: token, params: params, body: body)
   }
 
   func parseCallExpression(left: Expression?) -> Expression? {
@@ -422,7 +333,7 @@ public class Parser {
 
       if peekTokenIs(.r_paren) {
         nextToken()
-        return .call(callExpr)
+        return callExpr
       }
 
       while !curTokenIs(.r_paren) {
@@ -439,7 +350,7 @@ public class Parser {
         }
       }
 
-      return .call(callExpr)
+      return callExpr
     } catch ParsingError.unexpectedExpressionType(expected: let expected, found: let found) {
       errors.append("Expected expression type \(expected), but instead found: \(found)")
       return nil

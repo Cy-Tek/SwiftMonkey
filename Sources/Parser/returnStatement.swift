@@ -1,6 +1,6 @@
 import Lexer
 
-public struct ReturnStatement: Node {
+public struct ReturnStatement: Statement {
   public let token: Token
   public let value: Expression
 

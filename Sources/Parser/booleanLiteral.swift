@@ -1,6 +1,6 @@
 import Lexer
 
-public struct BooleanLiteral: Node {
+public struct BooleanLiteral: Expression {
   public let token: Token
   public let value: Bool
 

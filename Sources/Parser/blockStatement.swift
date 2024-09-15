@@ -1,6 +1,6 @@
 import Lexer
 
-public struct BlockStatement: Node {
+public struct BlockStatement: Statement {
   public let token: Token
   private(set) public var statements: [Statement]
 

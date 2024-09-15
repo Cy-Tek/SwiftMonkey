@@ -1,6 +1,6 @@
 import Lexer
 
-public struct PrefixExpression: Node {
+public struct PrefixExpression: Expression {
   public let token: Token
   public let op: String
   public let right: Expression?
