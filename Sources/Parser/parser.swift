@@ -1,6 +1,6 @@
 import Lexer
 
-protocol Node {
+public protocol Node {
   func tokenLiteral() -> String
 }
 
@@ -145,7 +145,7 @@ public class Parser {
 
   public private(set) var errors: [String] = []
 
-  init(input: String) {
+  public init(input: String) {
     lexer = Lexer(input: input)
 
     registerPrefix(tokenType: .ident, fn: parseIdentifier)
@@ -246,6 +246,7 @@ public class Parser {
       nextToken()
     }
 
+    guard let expression else { return nil }
     return .expressionStatement(ExpressionStatement(token: token, expression: expression))
   }
 

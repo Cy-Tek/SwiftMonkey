@@ -5,7 +5,7 @@ public struct ExpressionStatement: Node {
   public let token: Token
 
   // The expression that this statement represents
-  public let expression: Expression?
+  public let expression: Expression
 
   public func tokenLiteral() -> String {
     return token.literal
@@ -14,6 +14,6 @@ public struct ExpressionStatement: Node {
 
 extension ExpressionStatement: CustomStringConvertible {
   public var description: String {
-    expression.map { $0.description } ?? ""
+    return "\(expression)"
   }
 }

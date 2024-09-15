@@ -98,12 +98,7 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    guard let expression = expressionStmt.expression else {
-      XCTFail("Found nil expression, but expected an integer literal")
-      return
-    }
-
-    let _ = testIntegerLiteral(expression: expression, value: 5)
+    let _ = testIntegerLiteral(expression: expressionStmt.expression, value: 5)
   }
 
   func testParsingPrefixExpressions() {
@@ -126,12 +121,7 @@ final class ParserTests: XCTestCase {
         return
       }
 
-      guard let expression = expressionStmt.expression else {
-        XCTFail("Found nil expression, but expected a prefix expression")
-        return
-      }
-
-      guard case .prefix(let prefixExpr) = expression else {
+      guard case .prefix(let prefixExpr) = expressionStmt.expression else {
         XCTFail("Expression was not a prefix expression")
         return
       }
@@ -171,14 +161,9 @@ final class ParserTests: XCTestCase {
         return
       }
 
-      guard let expression = expressionStmt.expression else {
-        XCTFail("Found nil expression, but expected an infix expression")
-        return
-      }
-
       guard
         testInfixExpression(
-          expression: expression,
+          expression: expressionStmt.expression,
           left: test.leftValue,
           op: test.op,
           right: test.rightValue
@@ -313,12 +298,7 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    guard let consequnce = consequenceStmt.expression else {
-      XCTFail("Consequence expression was nil")
-      return
-    }
-
-    guard testIdentifier(expression: consequnce, value: "x") else {
+    guard testIdentifier(expression: consequenceStmt.expression, value: "x") else {
       return
     }
 
@@ -367,12 +347,7 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    guard let bodyExpr = bodyStmt.expression else {
-      XCTFail("Failed to receive a valid expression inside of the body statment")
-      return
-    }
-
-    let _ = testInfixExpression(expression: bodyExpr, left: "x", op: "+", right: "y")
+    let _ = testInfixExpression(expression: bodyStmt.expression, left: "x", op: "+", right: "y")
   }
 
   func testFunctionParameterParsing() {
@@ -431,7 +406,7 @@ final class ParserTests: XCTestCase {
 
     guard case .call(let callExpr) = expressionStmt.expression else {
       XCTFail(
-        "Expected a call expression but found \(expressionStmt.expression?.description ?? "nil")")
+        "Expected a call expression but found \(expressionStmt.expression)")
       return
     }
 
