@@ -50,7 +50,7 @@ final class ParserTests: XCTestCase {
     XCTAssertEqual(program.statements.count, 3)
 
     for (i, stmt) in program.statements.enumerated() {
-      guard case .returnStatement(let returnStmt) = stmt else {
+      guard let returnStmt = stmt as? ReturnStatement else {
         XCTFail("Statement was not a return statement. Received literal \(stmt.tokenLiteral())")
         return
       }
@@ -71,12 +71,12 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 1)
 
-    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+    guard let expressionStmt = program.statements.first as? ExpressionStatement else {
       XCTFail("Statement was not an expression statement.")
       return
     }
 
-    guard case .identifier(let identifier) = expressionStmt.expression else {
+    guard let identifier = expressionStmt.expression as? Identifier else {
       XCTFail("Expression was not an identifier.")
       return
     }
@@ -93,7 +93,7 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 1)
 
-    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+    guard let expressionStmt = program.statements.first as? ExpressionStatement else {
       XCTFail("Statement was not an expression statement")
       return
     }
@@ -116,12 +116,12 @@ final class ParserTests: XCTestCase {
 
       XCTAssertEqual(program.statements.count, 1)
 
-      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      guard let expressionStmt = program.statements.first as? ExpressionStatement else {
         XCTFail("Statement was not an expression statement")
         return
       }
 
-      guard case .prefix(let prefixExpr) = expressionStmt.expression else {
+      guard let prefixExpr = expressionStmt.expression as? PrefixExpression else {
         XCTFail("Expression was not a prefix expression")
         return
       }
@@ -156,7 +156,7 @@ final class ParserTests: XCTestCase {
 
       XCTAssertEqual(program.statements.count, 1)
 
-      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      guard let expressionStmt = program.statements.first as? ExpressionStatement else {
         XCTFail("Statement was not an expression statement")
         return
       }
@@ -274,12 +274,12 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 1)
 
-    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+    guard let expressionStmt = program.statements.first as? ExpressionStatement else {
       XCTFail("Statement was not an expression statement")
       return
     }
 
-    guard case .if(let ifExpr) = expressionStmt.expression else {
+    guard let ifExpr = expressionStmt.expression as? IfExpression else {
       XCTFail("Expression was not an if expression")
       return
     }
@@ -292,7 +292,7 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(ifExpr.consequence.statements.count, 1)
 
-    guard case .expressionStatement(let consequenceStmt) = ifExpr.consequence.statements.first
+    guard let consequenceStmt = ifExpr.consequence.statements.first as? ExpressionStatement
     else {
       XCTFail("Consequence statement was not an expression statement")
       return
@@ -313,12 +313,12 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 1)
 
-    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+    guard let expressionStmt = program.statements.first as? ExpressionStatement else {
       XCTFail("Statement was not an expression statement")
       return
     }
 
-    guard case .fn(let fnExpr) = expressionStmt.expression else {
+    guard let fnExpr = expressionStmt.expression as? FunctionLiteral else {
       XCTFail("Expression was not an fn expression")
       return
     }
@@ -328,8 +328,8 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    let _ = testLiteralExpression(expression: .identifier(fnExpr.params[0]), expected: "x")
-    let _ = testLiteralExpression(expression: .identifier(fnExpr.params[1]), expected: "y")
+    let _ = testLiteralExpression(expression: fnExpr.params[0], expected: "x")
+    let _ = testLiteralExpression(expression: fnExpr.params[1], expected: "y")
 
     guard let fnBody = fnExpr.body else {
       XCTFail("Expected to find a function body")
@@ -342,7 +342,7 @@ final class ParserTests: XCTestCase {
       return
     }
 
-    guard case .expressionStatement(let bodyStmt) = fnBody.statements[0] else {
+    guard let bodyStmt = fnBody.statements[0] as? ExpressionStatement else {
       XCTFail("Expected to get an expression statement")
       return
     }
@@ -364,12 +364,12 @@ final class ParserTests: XCTestCase {
 
       XCTAssertEqual(program.statements.count, 1)
 
-      guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+      guard let expressionStmt = program.statements.first as? ExpressionStatement else {
         XCTFail("Expression was not an expression statement")
         return
       }
 
-      guard case .fn(let function) = expressionStmt.expression else {
+      guard let function = expressionStmt.expression as? FunctionLiteral else {
         XCTFail("Expected expression statement to be a function literal")
         return
       }
@@ -381,7 +381,7 @@ final class ParserTests: XCTestCase {
       }
 
       for (i, param) in test.expectedParams.enumerated() {
-        guard testLiteralExpression(expression: .identifier(function.params[i]), expected: param)
+        guard testLiteralExpression(expression: function.params[i], expected: param)
         else {
           return
         }
@@ -397,14 +397,14 @@ final class ParserTests: XCTestCase {
 
     XCTAssertEqual(program.statements.count, 1)
 
-    guard case .expressionStatement(let expressionStmt) = program.statements.first else {
+    guard let expressionStmt = program.statements.first as? ExpressionStatement else {
       XCTFail(
         "Expected an expression statement but found \(program.statements.first?.description ?? "nil")"
       )
       return
     }
 
-    guard case .call(let callExpr) = expressionStmt.expression else {
+    guard let callExpr = expressionStmt.expression as? CallExpression else {
       XCTFail(
         "Expected a call expression but found \(expressionStmt.expression)")
       return
@@ -432,7 +432,7 @@ func testParserErrors(_ parser: Parser) -> Bool {
 func testLetStatement(statement: Statement, name: String, value: Any) -> Bool {
   XCTAssertEqual(statement.tokenLiteral(), "let")
 
-  guard case .letStatement(let letStmt) = statement else {
+  guard let letStmt = statement as? LetStatement else {
     XCTFail("Statement was not a LetStatement.")
     return false
   }
@@ -456,7 +456,7 @@ func testLetStatement(statement: Statement, name: String, value: Any) -> Bool {
 }
 
 func testIdentifier(expression: Expression, value: String) -> Bool {
-  guard case .identifier(let identifier) = expression else {
+  guard let identifier = expression as? Identifier else {
     XCTFail("Expression was not an identifier")
     return false
   }
@@ -475,7 +475,7 @@ func testIdentifier(expression: Expression, value: String) -> Bool {
 }
 
 func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
-  guard case .integer(let literal) = expression else {
+  guard let literal = expression as? IntegerLiteral else {
     XCTFail("Expression was not an integer literal")
     return false
   }
@@ -494,7 +494,7 @@ func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
 }
 
 func testBooleanLiteral(expression: Expression, expected: Bool) -> Bool {
-  guard case .bool(let boolExpr) = expression else {
+  guard let boolExpr = expression as? BooleanLiteral else {
     XCTFail("Expected a BooleanLiteral expression")
     return false
   }
@@ -532,7 +532,7 @@ func testInfixExpression(
   op: String,
   right: Any
 ) -> Bool {
-  guard case .infix(let infixExpr) = expression else {
+  guard let infixExpr = expression as? InfixExpression else {
     XCTFail("Expression was not an infix expression")
     return false
   }
