@@ -27,6 +27,26 @@ final class EvaluatorTests: XCTestCase {
       let _ = try testBoolObject(obj: evaluated, expected: test.expected)
     }
   }
+
+  func testBangOperator() throws {
+    let tests: [(input: String, expected: Bool)] = [
+      ("!true", false),
+      ("!false", true),
+      ("!!true", true),
+      ("!!false", false),
+
+      // Truthy numbers except 0
+      ("!5", false),
+      ("!!5", true),
+      ("!0", true),
+      ("!!0", false),
+    ]
+
+    for test in tests {
+      let evaluated = try testEval(test.input)
+      let _ = try testBoolObject(obj: evaluated, expected: test.expected)
+    }
+  }
 }
 
 func testEval(_ input: String) throws -> Object {
