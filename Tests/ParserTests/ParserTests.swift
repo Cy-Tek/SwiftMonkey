@@ -381,8 +381,7 @@ final class ParserTests: XCTestCase {
       }
 
       for (i, param) in test.expectedParams.enumerated() {
-        guard testLiteralExpression(expression: function.params[i], expected: param)
-        else {
+        guard testLiteralExpression(expression: function.params[i], expected: param) else {
           return
         }
       }
