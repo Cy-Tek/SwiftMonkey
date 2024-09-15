@@ -12,10 +12,21 @@ final class EvaluatorTests: XCTestCase {
 
     for test in tests {
       let evaluated = try testEval(test.input)
-      try testIntegerObject(obj: evaluated, expected: test.expected)
+      let _ = try testIntegerObject(obj: evaluated, expected: test.expected)
     }
   }
 
+  func testEvalBool() throws {
+    let tests: [(input: String, expected: Bool)] = [
+      ("true", true),
+      ("false", false),
+    ]
+
+    for test in tests {
+      let evaluated = try testEval(test.input)
+      let _ = try testBoolObject(obj: evaluated, expected: test.expected)
+    }
+  }
 }
 
 func testEval(_ input: String) throws -> Object {
@@ -27,6 +38,17 @@ func testEval(_ input: String) throws -> Object {
 
 func testIntegerObject(obj: Object, expected: Int64) throws -> Bool {
   let result = obj as! Integer
+
+  if result.value != expected {
+    XCTFail("Expected value to equal \(expected), but received \(result.value)")
+    return false
+  }
+
+  return true
+}
+
+func testBoolObject(obj: Object, expected: Bool) throws -> Bool {
+  let result = obj as! Boolean
 
   if result.value != expected {
     XCTFail("Expected value to equal \(expected), but received \(result.value)")

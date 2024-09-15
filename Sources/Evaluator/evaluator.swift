@@ -17,6 +17,8 @@ public func eval(node: Node) throws -> Object {
   // Expressions
   case let il as IntegerLiteral:
     return Integer(il.value)
+  case let bl as BooleanLiteral:
+    return Boolean(bl.value)
 
   default:
     throw EvaluationError.unimplemented

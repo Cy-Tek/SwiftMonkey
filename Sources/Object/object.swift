@@ -21,6 +21,10 @@ public struct Integer: Object {
 public struct Boolean: Object {
   public let value: Bool
 
+  public init(_ value: Bool) {
+    self.value = value
+  }
+
   public func inspect() -> String {
     return value.description
   }
