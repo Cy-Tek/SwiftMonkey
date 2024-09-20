@@ -8,6 +8,8 @@ final class EvaluatorTests: XCTestCase {
     let tests: [(input: String, expected: Int64)] = [
       ("5", 5),
       ("10", 10),
+      ("-5", -5),
+      ("-10", -10),
     ]
 
     for test in tests {

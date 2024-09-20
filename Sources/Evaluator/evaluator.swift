@@ -66,4 +66,12 @@ func evalBangOperator(right: Object) throws -> Object {
   default:
     return Boolean(false)
   }
+
+  func evalNegationOperator(right: Object) throws -> Object {
+    guard let expr = right as? Integer else {
+      return Null()
+    }
+
+    return Integer(-expr.value)
+  }
 }
