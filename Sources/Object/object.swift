@@ -31,6 +31,8 @@ public struct Boolean: Object {
 }
 
 public struct Null: Object {
+  public init() {}
+
   public func inspect() -> String {
     return "null"
   }
