@@ -71,7 +71,18 @@ func evalPrefixExpression(op: String, right: Object) throws -> Object {
 }
 
 func evalInfixExpression(left: Object, op: String, right: Object) throws -> Object {
-  throw EvaluationError.unimplemented
+  switch op {
+  case "-":
+    return try evalMinusOperator(left: left, right: right)
+  case "+":
+    return try evalPlusOperator(left: left, right: right)
+  case "/":
+    return try evalSlashOperator(left: left, right: right)
+  case "*":
+    return try evalAsteriskOperator(left: left, right: right)
+  default:
+    throw EvaluationError.unimplemented
+  }
 }
 
 func evalBangOperator(right: Object) throws -> Object {
@@ -101,4 +112,28 @@ func evalPlusOperator(left: Object, right: Object) throws -> Object {
   }
 
   return Integer(leftInt.value + rightInt.value)
+}
+
+func evalMinusOperator(left: Object, right: Object) throws -> Object {
+  guard let leftInt = left as? Integer, let rightInt = right as? Integer else {
+    throw EvaluationError.evaluationFailed
+  }
+
+  return Integer(leftInt.value - rightInt.value)
+}
+
+func evalAsteriskOperator(left: Object, right: Object) throws -> Object {
+  guard let leftInt = left as? Integer, let rightInt = right as? Integer else {
+    throw EvaluationError.evaluationFailed
+  }
+
+  return Integer(leftInt.value * rightInt.value)
+}
+
+func evalSlashOperator(left: Object, right: Object) throws -> Object {
+  guard let leftInt = left as? Integer, let rightInt = right as? Integer else {
+    throw EvaluationError.evaluationFailed
+  }
+
+  return Integer(leftInt.value / rightInt.value)
 }
