@@ -5,7 +5,7 @@ public struct ExpressionStatement: Statement {
   public let token: Token
 
   // The expression that this statement represents
-  public let expression: Expression
+  public let expression: ASTExpression
 
   public func tokenLiteral() -> String {
     return token.literal

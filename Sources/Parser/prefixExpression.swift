@@ -1,9 +1,9 @@
 import Lexer
 
-public struct PrefixExpression: Expression {
+public struct PrefixExpression: ASTExpression {
   public let token: Token
   public let op: String
-  public let right: Expression?
+  public let right: ASTExpression?
 
   public func tokenLiteral() -> String {
     return token.literal

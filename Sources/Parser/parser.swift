@@ -25,10 +25,10 @@ public enum Precedence: Int, Comparable {
 }
 
 public protocol Statement: Node, CustomStringConvertible {}
-public protocol Expression: Node, CustomStringConvertible {}
+public protocol ASTExpression: Node, CustomStringConvertible {}
 
-typealias PrefixParseFn = () -> Expression?
-typealias InfixParseFn = (Expression) -> Expression?
+typealias PrefixParseFn = () -> ASTExpression?
+typealias InfixParseFn = (ASTExpression) -> ASTExpression?
 
 private enum Precedences {
   static let precedences: [TokenType: Precedence] = [
@@ -178,7 +178,7 @@ public class Parser {
     return blockStatement
   }
 
-  func parseExpression(precedence: Precedence) -> Expression? {
+  func parseExpression(precedence: Precedence) -> ASTExpression? {
     guard let prefix = prefixParseFns[curToken.type] else {
       errors.append("No prefix parse function for \(curToken.type)")
       return nil
@@ -200,7 +200,7 @@ public class Parser {
     return leftExp
   }
 
-  func parseGroupedExpression() -> Expression? {
+  func parseGroupedExpression() -> ASTExpression? {
     nextToken()
 
     let exp = parseExpression(precedence: .lowest)
@@ -211,11 +211,11 @@ public class Parser {
     return exp
   }
 
-  func parseIdentifier() -> Expression? {
+  func parseIdentifier() -> ASTExpression? {
     return Identifier(token: curToken, value: curToken.literal)
   }
 
-  func parseIntegerLiteral() -> Expression? {
+  func parseIntegerLiteral() -> ASTExpression? {
     guard let value = Int(curToken.literal) else {
       errors.append("Could not parse \(curToken.literal) as an integer")
       return nil
@@ -224,7 +224,7 @@ public class Parser {
     return IntegerLiteral(token: curToken, value: value)
   }
 
-  func parseBooleanLiteral() -> Expression? {
+  func parseBooleanLiteral() -> ASTExpression? {
     guard let value = Bool(curToken.literal) else {
       errors.append("Could not parse \(curToken.literal) as a boolean")
       return nil
@@ -233,7 +233,7 @@ public class Parser {
     return BooleanLiteral(token: curToken, value: value)
   }
 
-  func parsePrefixExpression() -> Expression? {
+  func parsePrefixExpression() -> ASTExpression? {
     let token = curToken
     let op = curToken.literal
 
@@ -244,7 +244,7 @@ public class Parser {
     return PrefixExpression(token: token, op: op, right: right)
   }
 
-  func parseInfixExpression(left: Expression?) -> Expression? {
+  func parseInfixExpression(left: ASTExpression?) -> ASTExpression? {
     let token = curToken
     let op = curToken.literal
 
@@ -255,7 +255,7 @@ public class Parser {
     return InfixExpression(token: token, left: left, op: op, right: right)
   }
 
-  func parseIfExpression() -> Expression? {
+  func parseIfExpression() -> ASTExpression? {
     let token = curToken
 
     guard expectPeek(expected: .l_paren) else { return nil }
@@ -290,7 +290,7 @@ public class Parser {
       token: token, condition: condition, consequence: consequence, alternative: alternative)
   }
 
-  func parseFnExpression() -> Expression? {
+  func parseFnExpression() -> ASTExpression? {
     let token = curToken
     var params: [Identifier] = []
 
@@ -325,7 +325,7 @@ public class Parser {
     return FunctionLiteral(token: token, params: params, body: body)
   }
 
-  func parseCallExpression(left: Expression?) -> Expression? {
+  func parseCallExpression(left: ASTExpression?) -> ASTExpression? {
     guard let fn = left else { return nil }
 
     do {

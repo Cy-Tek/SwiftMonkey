@@ -454,7 +454,7 @@ func testLetStatement(statement: Statement, name: String, value: Any) -> Bool {
   return true
 }
 
-func testIdentifier(expression: Expression, value: String) -> Bool {
+func testIdentifier(expression: ASTExpression, value: String) -> Bool {
   guard let identifier = expression as? Identifier else {
     XCTFail("Expression was not an identifier")
     return false
@@ -473,7 +473,7 @@ func testIdentifier(expression: Expression, value: String) -> Bool {
   return true
 }
 
-func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
+func testIntegerLiteral(expression: ASTExpression, value: Int) -> Bool {
   guard let literal = expression as? IntegerLiteral else {
     XCTFail("Expression was not an integer literal")
     return false
@@ -492,7 +492,7 @@ func testIntegerLiteral(expression: Expression, value: Int) -> Bool {
   return true
 }
 
-func testBooleanLiteral(expression: Expression, expected: Bool) -> Bool {
+func testBooleanLiteral(expression: ASTExpression, expected: Bool) -> Bool {
   guard let boolExpr = expression as? BooleanLiteral else {
     XCTFail("Expected a BooleanLiteral expression")
     return false
@@ -511,7 +511,7 @@ func testBooleanLiteral(expression: Expression, expected: Bool) -> Bool {
   return true
 }
 
-func testLiteralExpression(expression: Expression, expected: Any) -> Bool {
+func testLiteralExpression(expression: ASTExpression, expected: Any) -> Bool {
   switch expected {
   case let value as Int:
     return testIntegerLiteral(expression: expression, value: value)
@@ -526,7 +526,7 @@ func testLiteralExpression(expression: Expression, expected: Any) -> Bool {
 }
 
 func testInfixExpression(
-  expression: Expression,
+  expression: ASTExpression,
   left: Any,
   op: String,
   right: Any

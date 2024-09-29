@@ -1,12 +1,12 @@
 import Lexer
 
-public struct InfixExpression: Expression {
+public struct InfixExpression: ASTExpression {
   public let token: Token
-  public let left: Expression?
+  public let left: ASTExpression?
   public let op: String
-  public let right: Expression?
+  public let right: ASTExpression?
 
-  public init(token: Token, left: Expression?, op: String, right: Expression?) {
+  public init(token: Token, left: ASTExpression?, op: String, right: ASTExpression?) {
     self.token = token
     self.left = left
     self.op = op

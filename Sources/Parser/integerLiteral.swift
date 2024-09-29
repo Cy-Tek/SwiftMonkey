@@ -1,6 +1,6 @@
 import Lexer
 
-public class IntegerLiteral: Expression {
+public class IntegerLiteral: ASTExpression {
   public var token: Token
   public var value: Int
 

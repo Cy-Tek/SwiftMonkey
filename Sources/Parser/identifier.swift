@@ -1,6 +1,6 @@
 import Lexer
 
-public struct Identifier: Expression {
+public struct Identifier: ASTExpression {
   public let token: Token
   public let value: String
 

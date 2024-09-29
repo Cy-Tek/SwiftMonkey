@@ -1,6 +1,6 @@
 import Lexer
 
-public struct FunctionLiteral: Expression {
+public struct FunctionLiteral: ASTExpression {
   public let token: Token
   private(set) public var params: [Identifier]
   public let body: BlockStatement?

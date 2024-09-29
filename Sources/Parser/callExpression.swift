@@ -1,11 +1,11 @@
 import Lexer
 
-public struct CallExpression: Expression {
+public struct CallExpression: ASTExpression {
   public let token: Token
-  public let function: Expression
-  private(set) public var arguments: [Expression]
+  public let function: ASTExpression
+  private(set) public var arguments: [ASTExpression]
 
-  public init(token: Token, fn: Expression) throws {
+  public init(token: Token, fn: ASTExpression) throws {
     self.token = token
     self.arguments = []
 
@@ -17,7 +17,7 @@ public struct CallExpression: Expression {
     }
   }
 
-  public mutating func addArg(_ arg: Expression) {
+  public mutating func addArg(_ arg: ASTExpression) {
     arguments.append(arg)
   }
 

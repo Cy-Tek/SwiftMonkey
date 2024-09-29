@@ -1,13 +1,13 @@
 import Lexer
 
-public struct IfExpression: Expression {
+public struct IfExpression: ASTExpression {
   public let token: Token
-  public let condition: Expression
+  public let condition: ASTExpression
   public let consequence: BlockStatement
   public let alternative: BlockStatement?
 
   public init(
-    token: Token, condition: Expression, consequence: BlockStatement, alternative: BlockStatement?
+    token: Token, condition: ASTExpression, consequence: BlockStatement, alternative: BlockStatement?
   ) {
     self.token = token
     self.condition = condition

@@ -2,7 +2,7 @@ import Lexer
 
 public struct ReturnStatement: Statement {
   public let token: Token
-  public let value: Expression
+  public let value: ASTExpression
 
   public func tokenLiteral() -> String {
     return token.literal
