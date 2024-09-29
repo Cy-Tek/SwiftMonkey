@@ -80,6 +80,14 @@ func evalInfixExpression(left: Object, op: String, right: Object) throws -> Obje
     return try evalSlashOperator(left: left, right: right)
   case "*":
     return try evalAsteriskOperator(left: left, right: right)
+  case "==":
+    return try evalEqOperator(left: left, right: right)
+  case "!=":
+    return try evalNotEqOperator(left: left, right: right)
+  case ">":
+    return try evalGreaterThanOperator(left: left, right: right)
+  case "<":
+    return try evalLessThanOperator(left: left, right: right)
   default:
     throw EvaluationError.unimplemented
   }
@@ -136,4 +144,44 @@ func evalSlashOperator(left: Object, right: Object) throws -> Object {
   }
 
   return Integer(leftInt.value / rightInt.value)
+}
+
+func evalEqOperator(left: Object, right: Object) throws -> Object {
+  if let leftInt = left as? Integer, let rightInt = right as? Integer {
+    return Boolean(leftInt.value == rightInt.value)
+  }
+
+  if let leftBool = left as? Boolean, let rightBool = right as? Boolean {
+    return Boolean(leftBool.value == rightBool.value)
+  }
+
+  throw EvaluationError.evaluationFailed
+}
+
+func evalNotEqOperator(left: Object, right: Object) throws -> Object {
+  if let leftInt = left as? Integer, let rightInt = right as? Integer {
+    return Boolean(leftInt.value != rightInt.value)
+  }
+
+  if let leftBool = left as? Boolean, let rightBool = right as? Boolean {
+    return Boolean(leftBool.value != rightBool.value)
+  }
+
+  throw EvaluationError.evaluationFailed
+}
+
+func evalGreaterThanOperator(left: Object, right: Object) throws -> Object {
+  if let leftInt = left as? Integer, let rightInt = right as? Integer {
+    return Boolean(leftInt.value > rightInt.value)
+  }
+
+  throw EvaluationError.evaluationFailed
+}
+
+func evalLessThanOperator(left: Object, right: Object) throws -> Object {
+  if let leftInt = left as? Integer, let rightInt = right as? Integer {
+    return Boolean(leftInt.value < rightInt.value)
+  }
+
+  throw EvaluationError.evaluationFailed
 }

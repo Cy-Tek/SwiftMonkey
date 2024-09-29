@@ -31,6 +31,22 @@ final class EvaluatorTests: XCTestCase {
     let tests: [(input: String, expected: Bool)] = [
       ("true", true),
       ("false", false),
+      ("true == false", false),
+      ("true == true", true),
+      ("false == false", true),
+      ("true != false", true),
+      ("true != true", false),
+      ("false != false", false),
+      ("!true == false", true),
+
+      ("5 == 5", true),
+      ("5 == -5", false),
+      ("5 != 5", false),
+      ("5 != -5", true),
+      ("5 > 10", false),
+      ("5 < 10", true),
+      ("5 < -5", false),
+      ("5 + 10 > 10", true),
     ]
 
     for test in tests {
